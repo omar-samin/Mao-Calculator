@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Display } from './Display';
 import { StandardButtons } from './StandardButtons';
 import { ScientificButtons } from './ScientificButtons';
@@ -13,6 +13,65 @@ export const Calculator = () => {
   const [operation, setOperation] = useState<string | null>(null);
   const [waitingForOperand, setWaitingForOperand] = useState(false);
   const [memory, setMemory] = useState(0);
+
+  // Add keyboard event listener
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      const key = event.key;
+      
+      // Prevent default behavior for calculator keys
+      if (/[0-9+\-*/=.c]|Enter|Escape|Backspace/.test(key)) {
+        event.preventDefault();
+      }
+
+      // Handle number inputs
+      if (/[0-9]/.test(key)) {
+        inputNumber(key);
+      }
+      
+      // Handle decimal point
+      else if (key === '.') {
+        inputNumber('.');
+      }
+      
+      // Handle operators
+      else if (key === '+') {
+        inputOperator('+');
+      }
+      else if (key === '-') {
+        inputOperator('-');
+      }
+      else if (key === '*') {
+        inputOperator('×');
+      }
+      else if (key === '/') {
+        inputOperator('÷');
+      }
+      
+      // Handle equals
+      else if (key === '=' || key === 'Enter') {
+        performCalculation();
+      }
+      
+      // Handle clear
+      else if (key === 'Escape' || key.toLowerCase() === 'c') {
+        clear();
+      }
+      
+      // Handle backspace (clear entry)
+      else if (key === 'Backspace') {
+        clearEntry();
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleKeyPress);
+    
+    // Cleanup event listener on component unmount
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [display, previousValue, operation, waitingForOperand]);
 
   const inputNumber = (num: string) => {
     if (waitingForOperand) {
