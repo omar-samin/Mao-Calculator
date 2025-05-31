@@ -1,12 +1,10 @@
-
 import React, { useState } from 'react';
 import { Display } from './Display';
 import { StandardButtons } from './StandardButtons';
 import { ScientificButtons } from './ScientificButtons';
-import { ProgrammerButtons } from './ProgrammerButtons';
 import { Calculator as CalculatorIcon } from 'lucide-react';
 
-export type CalculatorMode = 'standard' | 'scientific' | 'programmer';
+export type CalculatorMode = 'standard' | 'scientific';
 
 export const Calculator = () => {
   const [mode, setMode] = useState<CalculatorMode>('standard');
@@ -125,40 +123,6 @@ export const Calculator = () => {
     setWaitingForOperand(true);
   };
 
-  const programmerFunction = (func: string) => {
-    const value = parseInt(display, 10);
-    let result: string;
-
-    switch (func) {
-      case 'HEX':
-        result = value.toString(16).toUpperCase();
-        break;
-      case 'DEC':
-        result = value.toString(10);
-        break;
-      case 'OCT':
-        result = value.toString(8);
-        break;
-      case 'BIN':
-        result = value.toString(2);
-        break;
-      case 'AND':
-      case 'OR':
-      case 'XOR':
-        // For bitwise operations, we need two operands
-        inputOperator(func);
-        return;
-      case 'NOT':
-        result = (~value).toString();
-        break;
-      default:
-        result = display;
-    }
-
-    setDisplay(result);
-    setWaitingForOperand(true);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       <div className="bg-slate-800/50 backdrop-blur-lg border border-slate-700/50 rounded-3xl shadow-2xl p-6 w-full max-w-md">
@@ -170,7 +134,7 @@ export const Calculator = () => {
 
         {/* Mode Selector */}
         <div className="flex bg-slate-700/50 rounded-xl p-1 mb-6">
-          {(['standard', 'scientific', 'programmer'] as CalculatorMode[]).map((modeOption) => (
+          {(['standard', 'scientific'] as CalculatorMode[]).map((modeOption) => (
             <button
               key={modeOption}
               onClick={() => setMode(modeOption)}
@@ -207,16 +171,6 @@ export const Calculator = () => {
               onClear={clear}
               onClearEntry={clearEntry}
               onFunction={scientificFunction}
-            />
-          )}
-          {mode === 'programmer' && (
-            <ProgrammerButtons
-              onNumber={inputNumber}
-              onOperator={inputOperator}
-              onEquals={performCalculation}
-              onClear={clear}
-              onClearEntry={clearEntry}
-              onFunction={programmerFunction}
             />
           )}
         </div>
