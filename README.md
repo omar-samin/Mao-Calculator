@@ -1,5 +1,9 @@
 # Welcome to your Lovable project
 
+## Application Link
+
+**URL**: https://mao-calculator.lovable.app/
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/16d17213-eb14-4ed2-ad89-ada8711c9436
