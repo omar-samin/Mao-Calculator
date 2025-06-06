@@ -7,13 +7,15 @@ interface ButtonProps {
   onClick: () => void;
   variant?: 'number' | 'operator' | 'equals' | 'function' | 'secondary';
   className?: string;
+  isActive?: boolean;
 }
 
 export const Button: React.FC<ButtonProps> = ({ 
   children, 
   onClick, 
   variant = 'number', 
-  className 
+  className,
+  isActive = false
 }) => {
   const baseClasses = "h-14 rounded-xl font-semibold text-lg transition-all duration-200 active:scale-95 hover:shadow-lg";
   
@@ -25,12 +27,21 @@ export const Button: React.FC<ButtonProps> = ({
     secondary: "bg-red-600/80 hover:bg-red-500/80 text-white border border-red-500/50 shadow-red-500/20"
   };
 
+  const activeClasses = {
+    number: "bg-slate-600/90 scale-95",
+    operator: "bg-blue-500/90 scale-95",
+    equals: "bg-green-500/90 scale-95", 
+    function: "bg-orange-300/90 scale-95",
+    secondary: "bg-red-500/90 scale-95"
+  };
+
   return (
     <button
       onClick={onClick}
       className={cn(
         baseClasses,
         variantClasses[variant],
+        isActive && activeClasses[variant],
         className
       )}
     >

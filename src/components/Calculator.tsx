@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Display } from './Display';
 import { StandardButtons } from './StandardButtons';
@@ -13,6 +14,45 @@ export const Calculator = () => {
   const [operation, setOperation] = useState<string | null>(null);
   const [waitingForOperand, setWaitingForOperand] = useState(false);
   const [memory, setMemory] = useState(0);
+  const [activeButton, setActiveButton] = useState<string | null>(null);
+
+  // Format number with thousand separators
+  const formatNumber = (num: string): string => {
+    const parts = num.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  };
+
+  // Remove formatting for calculations
+  const unformatNumber = (formattedNum: string): string => {
+    return formattedNum.replace(/,/g, '');
+  };
+
+  // Fix floating point precision issues
+  const preciseCalculate = (firstValue: number, secondValue: number, operation: string): number => {
+    let result: number;
+    switch (operation) {
+      case '+':
+        result = firstValue + secondValue;
+        break;
+      case '-':
+        result = firstValue - secondValue;
+        break;
+      case '×':
+        result = firstValue * secondValue;
+        break;
+      case '÷':
+        result = secondValue !== 0 ? firstValue / secondValue : firstValue;
+        break;
+      case '=':
+        return secondValue;
+      default:
+        return secondValue;
+    }
+    
+    // Fix floating point precision by rounding to 10 decimal places
+    return Number(result.toFixed(10));
+  };
 
   // Add keyboard event listener
   useEffect(() => {
@@ -20,9 +60,20 @@ export const Calculator = () => {
       const key = event.key;
       
       // Prevent default behavior for calculator keys
-      if (/[0-9+\-*/=.c]|Enter|Escape|Backspace/.test(key)) {
+      if (/[0-9+\-*/=.c%]|Enter|Escape|Backspace/.test(key)) {
         event.preventDefault();
       }
+
+      // Visual feedback for keyboard input
+      let buttonKey = key;
+      if (key === '*') buttonKey = '×';
+      if (key === '/') buttonKey = '÷';
+      if (key === 'Enter') buttonKey = '=';
+      if (key === 'Escape' || key.toLowerCase() === 'c') buttonKey = 'C';
+      if (key === 'Backspace') buttonKey = 'CE';
+
+      setActiveButton(buttonKey);
+      setTimeout(() => setActiveButton(null), 150);
 
       // Handle number inputs
       if (/[0-9]/.test(key)) {
@@ -32,6 +83,11 @@ export const Calculator = () => {
       // Handle decimal point
       else if (key === '.') {
         inputNumber('.');
+      }
+      
+      // Handle percentage
+      else if (key === '%') {
+        percentage();
       }
       
       // Handle operators
@@ -78,20 +134,22 @@ export const Calculator = () => {
       setDisplay(num);
       setWaitingForOperand(false);
     } else {
-      setDisplay(display === '0' ? num : display + num);
+      const unformattedDisplay = unformatNumber(display);
+      const newDisplay = unformattedDisplay === '0' ? num : unformattedDisplay + num;
+      setDisplay(formatNumber(newDisplay));
     }
   };
 
   const inputOperator = (nextOperator: string) => {
-    const inputValue = parseFloat(display);
+    const inputValue = parseFloat(unformatNumber(display));
 
     if (previousValue === null) {
       setPreviousValue(inputValue);
     } else if (operation) {
       const currentValue = previousValue || 0;
-      const newValue = calculate(currentValue, inputValue, operation);
+      const newValue = preciseCalculate(currentValue, inputValue, operation);
 
-      setDisplay(String(newValue));
+      setDisplay(formatNumber(String(newValue)));
       setPreviousValue(newValue);
     }
 
@@ -99,33 +157,23 @@ export const Calculator = () => {
     setOperation(nextOperator);
   };
 
-  const calculate = (firstValue: number, secondValue: number, operation: string): number => {
-    switch (operation) {
-      case '+':
-        return firstValue + secondValue;
-      case '-':
-        return firstValue - secondValue;
-      case '×':
-        return firstValue * secondValue;
-      case '÷':
-        return secondValue !== 0 ? firstValue / secondValue : firstValue;
-      case '=':
-        return secondValue;
-      default:
-        return secondValue;
-    }
-  };
-
   const performCalculation = () => {
-    const inputValue = parseFloat(display);
+    const inputValue = parseFloat(unformatNumber(display));
 
     if (previousValue !== null && operation) {
-      const newValue = calculate(previousValue, inputValue, operation);
-      setDisplay(String(newValue));
+      const newValue = preciseCalculate(previousValue, inputValue, operation);
+      setDisplay(formatNumber(String(newValue)));
       setPreviousValue(null);
       setOperation(null);
       setWaitingForOperand(true);
     }
+  };
+
+  const percentage = () => {
+    const value = parseFloat(unformatNumber(display));
+    const result = value / 100;
+    setDisplay(formatNumber(String(result)));
+    setWaitingForOperand(true);
   };
 
   const clear = () => {
@@ -140,7 +188,7 @@ export const Calculator = () => {
   };
 
   const scientificFunction = (func: string) => {
-    const value = parseFloat(display);
+    const value = parseFloat(unformatNumber(display));
     let result: number;
 
     switch (func) {
@@ -178,7 +226,7 @@ export const Calculator = () => {
         result = value;
     }
 
-    setDisplay(String(result));
+    setDisplay(formatNumber(String(result)));
     setWaitingForOperand(true);
   };
 
@@ -220,6 +268,8 @@ export const Calculator = () => {
               onEquals={performCalculation}
               onClear={clear}
               onClearEntry={clearEntry}
+              onPercentage={percentage}
+              activeButton={activeButton}
             />
           )}
           {mode === 'scientific' && (
@@ -230,6 +280,8 @@ export const Calculator = () => {
               onClear={clear}
               onClearEntry={clearEntry}
               onFunction={scientificFunction}
+              onPercentage={percentage}
+              activeButton={activeButton}
             />
           )}
         </div>
