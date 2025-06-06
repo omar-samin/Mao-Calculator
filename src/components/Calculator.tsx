@@ -14,15 +14,11 @@ export const Calculator = () => {
 
   const {
     display,
-    expression,
-    result,
     memory,
     inputNumber,
     inputDecimal,
     inputOperator,
-    inputParenthesis,
     performCalculation,
-    percentage,
     clear,
     clearEntry,
     scientificFunction,
@@ -32,9 +28,7 @@ export const Calculator = () => {
     inputNumber,
     inputDecimal,
     inputOperator,
-    inputParenthesis,
     performCalculation,
-    percentage,
     clear,
     clearEntry,
     setActiveButton,
@@ -67,7 +61,7 @@ export const Calculator = () => {
         </div>
 
         {/* Display */}
-        <Display value={display} expression={expression} result={result} />
+        <Display value={display} />
 
         {/* Button Grid */}
         <div className="mt-6">
@@ -76,11 +70,9 @@ export const Calculator = () => {
               onNumber={inputNumber}
               onDecimal={inputDecimal}
               onOperator={inputOperator}
-              onParenthesis={inputParenthesis}
               onEquals={performCalculation}
               onClear={clear}
               onClearEntry={clearEntry}
-              onPercentage={percentage}
               activeButton={activeButton}
             />
           )}
@@ -89,12 +81,10 @@ export const Calculator = () => {
               onNumber={inputNumber}
               onDecimal={inputDecimal}
               onOperator={inputOperator}
-              onParenthesis={inputParenthesis}
               onEquals={performCalculation}
               onClear={clear}
               onClearEntry={clearEntry}
               onFunction={scientificFunction}
-              onPercentage={percentage}
               activeButton={activeButton}
             />
           )}

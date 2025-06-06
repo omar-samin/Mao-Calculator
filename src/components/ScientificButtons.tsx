@@ -6,12 +6,10 @@ interface ScientificButtonsProps {
   onNumber: (num: string) => void;
   onDecimal: () => void;
   onOperator: (operator: string) => void;
-  onParenthesis: (paren: string) => void;
   onEquals: () => void;
   onClear: () => void;
   onClearEntry: () => void;
   onFunction: (func: string) => void;
-  onPercentage: () => void;
   activeButton?: string | null;
 }
 
@@ -19,12 +17,10 @@ export const ScientificButtons: React.FC<ScientificButtonsProps> = ({
   onNumber,
   onDecimal,
   onOperator,
-  onParenthesis,
   onEquals,
   onClear,
   onClearEntry,
   onFunction,
-  onPercentage,
   activeButton,
 }) => {
   return (
@@ -36,11 +32,11 @@ export const ScientificButtons: React.FC<ScientificButtonsProps> = ({
       <Button onClick={onClearEntry} variant="secondary" isActive={activeButton === 'CE'}>
         CE
       </Button>
-      <Button onClick={() => onParenthesis('(')} variant="function" isActive={activeButton === '('}>
-        (
+      <Button onClick={() => onFunction('π')} variant="function">
+        π
       </Button>
-      <Button onClick={() => onParenthesis(')')} variant="function" isActive={activeButton === ')'}>
-        )
+      <Button onClick={() => onFunction('e')} variant="function">
+        e
       </Button>
       <Button onClick={() => onOperator('÷')} variant="operator" isActive={activeButton === '÷'}>
         ÷
@@ -121,8 +117,8 @@ export const ScientificButtons: React.FC<ScientificButtonsProps> = ({
       <Button onClick={onDecimal} variant="number" isActive={activeButton === '.'}>
         .
       </Button>
-      <Button onClick={onPercentage} variant="function" isActive={activeButton === '%'}>
-        %
+      <Button onClick={() => onFunction('1/x')} variant="function">
+        1/x
       </Button>
     </div>
   );

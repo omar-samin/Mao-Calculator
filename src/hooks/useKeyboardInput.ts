@@ -5,9 +5,7 @@ interface UseKeyboardInputProps {
   inputNumber: (num: string) => void;
   inputDecimal: () => void;
   inputOperator: (operator: string) => void;
-  inputParenthesis: (paren: string) => void;
   performCalculation: () => void;
-  percentage: () => void;
   clear: () => void;
   clearEntry: () => void;
   setActiveButton: (button: string | null) => void;
@@ -17,9 +15,7 @@ export const useKeyboardInput = ({
   inputNumber,
   inputDecimal,
   inputOperator,
-  inputParenthesis,
   performCalculation,
-  percentage,
   clear,
   clearEntry,
   setActiveButton,
@@ -29,7 +25,7 @@ export const useKeyboardInput = ({
       const key = event.key;
       
       // Prevent default behavior for calculator keys
-      if (/[0-9+\-*/=.c%()]|Enter|Escape|Backspace/.test(key)) {
+      if (/[0-9+\-*/=.c]|Enter|Escape|Backspace/.test(key)) {
         event.preventDefault();
       }
 
@@ -52,19 +48,6 @@ export const useKeyboardInput = ({
       // Handle decimal point
       else if (key === '.') {
         inputDecimal();
-      }
-      
-      // Handle parentheses
-      else if (key === '(') {
-        inputParenthesis('(');
-      }
-      else if (key === ')') {
-        inputParenthesis(')');
-      }
-      
-      // Handle percentage
-      else if (key === '%') {
-        percentage();
       }
       
       // Handle operators
@@ -102,5 +85,5 @@ export const useKeyboardInput = ({
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [inputNumber, inputDecimal, inputOperator, inputParenthesis, performCalculation, percentage, clear, clearEntry, setActiveButton]);
+  }, [inputNumber, inputDecimal, inputOperator, performCalculation, clear, clearEntry, setActiveButton]);
 };
