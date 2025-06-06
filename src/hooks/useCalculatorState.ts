@@ -1,65 +1,122 @@
 
 import { useState } from 'react';
-import { formatNumber, unformatNumber, preciseCalculate } from '@/utils/calculatorUtils';
+import { formatNumber, unformatNumber, evaluateExpression, canEvaluateExpression, formatExpressionDisplay } from '@/utils/calculatorUtils';
 
 export const useCalculatorState = () => {
   const [display, setDisplay] = useState('0');
-  const [previousValue, setPreviousValue] = useState<number | null>(null);
-  const [operation, setOperation] = useState<string | null>(null);
+  const [expression, setExpression] = useState('');
+  const [result, setResult] = useState('');
   const [waitingForOperand, setWaitingForOperand] = useState(false);
   const [memory, setMemory] = useState(0);
+
+  const updateResult = (expr: string) => {
+    if (canEvaluateExpression(expr)) {
+      try {
+        const calculatedResult = evaluateExpression(expr);
+        setResult(formatNumber(calculatedResult.toString()));
+      } catch (error) {
+        setResult('');
+      }
+    } else {
+      setResult('');
+    }
+  };
 
   const inputNumber = (num: string) => {
     if (waitingForOperand) {
       setDisplay(num);
+      setExpression(num);
       setWaitingForOperand(false);
     } else {
-      const unformattedDisplay = unformatNumber(display);
-      const newDisplay = unformattedDisplay === '0' ? num : unformattedDisplay + num;
-      setDisplay(formatNumber(newDisplay));
+      const newDisplay = display === '0' ? num : display + num;
+      const newExpression = expression + num;
+      setDisplay(newDisplay);
+      setExpression(newExpression);
+    }
+    updateResult(expression + num);
+  };
+
+  const inputDecimal = () => {
+    if (waitingForOperand) {
+      setDisplay('0.');
+      setExpression('0.');
+      setWaitingForOperand(false);
+    } else if (display.indexOf('.') === -1) {
+      const newDisplay = display + '.';
+      const newExpression = expression + '.';
+      setDisplay(newDisplay);
+      setExpression(newExpression);
     }
   };
 
   const inputOperator = (nextOperator: string) => {
-    const inputValue = parseFloat(unformatNumber(display));
-
-    if (previousValue === null) {
-      setPreviousValue(inputValue);
-    } else if (operation) {
-      const currentValue = previousValue || 0;
-      const newValue = preciseCalculate(currentValue, inputValue, operation);
-
-      setDisplay(formatNumber(String(newValue)));
-      setPreviousValue(newValue);
-    }
-
+    const newExpression = expression + ` ${nextOperator} `;
+    setExpression(newExpression);
+    setDisplay('0');
     setWaitingForOperand(true);
-    setOperation(nextOperator);
+    updateResult(newExpression);
+  };
+
+  const inputParenthesis = (paren: string) => {
+    let newExpression = expression;
+    
+    if (paren === '(') {
+      if (expression === '' || /[+\-×÷(]$/.test(expression.trim())) {
+        newExpression = expression + '(';
+      } else {
+        newExpression = expression + ' × (';
+      }
+    } else if (paren === ')') {
+      // Only add closing parenthesis if there are unclosed opening ones
+      const openCount = (expression.match(/\(/g) || []).length;
+      const closeCount = (expression.match(/\)/g) || []).length;
+      if (openCount > closeCount) {
+        newExpression = expression + ')';
+      }
+    }
+    
+    setExpression(newExpression);
+    setDisplay(paren);
+    updateResult(newExpression);
   };
 
   const performCalculation = () => {
-    const inputValue = parseFloat(unformatNumber(display));
-
-    if (previousValue !== null && operation) {
-      const newValue = preciseCalculate(previousValue, inputValue, operation);
-      setDisplay(formatNumber(String(newValue)));
-      setPreviousValue(null);
-      setOperation(null);
-      setWaitingForOperand(true);
+    if (expression && canEvaluateExpression(expression)) {
+      try {
+        const calculatedResult = evaluateExpression(expression);
+        const formattedResult = formatNumber(calculatedResult.toString());
+        setDisplay(formattedResult);
+        setExpression(formattedResult);
+        setResult('');
+        setWaitingForOperand(true);
+      } catch (error) {
+        setDisplay('Error');
+        setExpression('');
+        setResult('');
+        setWaitingForOperand(true);
+      }
     }
   };
 
   const percentage = () => {
-    const value = parseFloat(unformatNumber(display));
-    const result = value / 100;
-    setDisplay(formatNumber(String(result)));
-    setWaitingForOperand(true);
+    if (expression) {
+      const newExpression = expression + '%';
+      setExpression(newExpression);
+      updateResult(newExpression);
+    } else if (display !== '0') {
+      const value = parseFloat(unformatNumber(display));
+      const percentResult = value / 100;
+      const formattedResult = formatNumber(percentResult.toString());
+      setDisplay(formattedResult);
+      setExpression(formattedResult);
+      setWaitingForOperand(true);
+    }
   };
 
   const clear = () => {
     setDisplay('0');
-    setPreviousValue(null);
-    setOperation(null);
+    setExpression('');
+    setResult('');
     setWaitingForOperand(false);
   };
 
@@ -106,15 +163,21 @@ export const useCalculatorState = () => {
         result = value;
     }
 
-    setDisplay(formatNumber(String(result)));
+    const formattedResult = formatNumber(result.toString());
+    setDisplay(formattedResult);
+    setExpression(formattedResult);
     setWaitingForOperand(true);
   };
 
   return {
     display,
+    expression: formatExpressionDisplay(expression),
+    result,
     memory,
     inputNumber,
+    inputDecimal,
     inputOperator,
+    inputParenthesis,
     performCalculation,
     percentage,
     clear,

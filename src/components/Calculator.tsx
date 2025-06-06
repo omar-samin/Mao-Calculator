@@ -14,9 +14,13 @@ export const Calculator = () => {
 
   const {
     display,
+    expression,
+    result,
     memory,
     inputNumber,
+    inputDecimal,
     inputOperator,
+    inputParenthesis,
     performCalculation,
     percentage,
     clear,
@@ -26,16 +30,14 @@ export const Calculator = () => {
 
   useKeyboardInput({
     inputNumber,
+    inputDecimal,
     inputOperator,
+    inputParenthesis,
     performCalculation,
     percentage,
     clear,
     clearEntry,
     setActiveButton,
-    display,
-    previousValue: null, // These values are managed internally by useCalculatorState
-    operation: null,
-    waitingForOperand: false,
   });
 
   return (
@@ -65,14 +67,16 @@ export const Calculator = () => {
         </div>
 
         {/* Display */}
-        <Display value={display} />
+        <Display value={display} expression={expression} result={result} />
 
         {/* Button Grid */}
         <div className="mt-6">
           {mode === 'standard' && (
             <StandardButtons
               onNumber={inputNumber}
+              onDecimal={inputDecimal}
               onOperator={inputOperator}
+              onParenthesis={inputParenthesis}
               onEquals={performCalculation}
               onClear={clear}
               onClearEntry={clearEntry}
@@ -83,7 +87,9 @@ export const Calculator = () => {
           {mode === 'scientific' && (
             <ScientificButtons
               onNumber={inputNumber}
+              onDecimal={inputDecimal}
               onOperator={inputOperator}
+              onParenthesis={inputParenthesis}
               onEquals={performCalculation}
               onClear={clear}
               onClearEntry={clearEntry}

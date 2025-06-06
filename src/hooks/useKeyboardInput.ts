@@ -3,37 +3,33 @@ import { useEffect } from 'react';
 
 interface UseKeyboardInputProps {
   inputNumber: (num: string) => void;
+  inputDecimal: () => void;
   inputOperator: (operator: string) => void;
+  inputParenthesis: (paren: string) => void;
   performCalculation: () => void;
   percentage: () => void;
   clear: () => void;
   clearEntry: () => void;
   setActiveButton: (button: string | null) => void;
-  display: string;
-  previousValue: number | null;
-  operation: string | null;
-  waitingForOperand: boolean;
 }
 
 export const useKeyboardInput = ({
   inputNumber,
+  inputDecimal,
   inputOperator,
+  inputParenthesis,
   performCalculation,
   percentage,
   clear,
   clearEntry,
   setActiveButton,
-  display,
-  previousValue,
-  operation,
-  waitingForOperand,
 }: UseKeyboardInputProps) => {
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       const key = event.key;
       
       // Prevent default behavior for calculator keys
-      if (/[0-9+\-*/=.c%]|Enter|Escape|Backspace/.test(key)) {
+      if (/[0-9+\-*/=.c%()]|Enter|Escape|Backspace/.test(key)) {
         event.preventDefault();
       }
 
@@ -55,7 +51,15 @@ export const useKeyboardInput = ({
       
       // Handle decimal point
       else if (key === '.') {
-        inputNumber('.');
+        inputDecimal();
+      }
+      
+      // Handle parentheses
+      else if (key === '(') {
+        inputParenthesis('(');
+      }
+      else if (key === ')') {
+        inputParenthesis(')');
       }
       
       // Handle percentage
@@ -93,12 +97,10 @@ export const useKeyboardInput = ({
       }
     };
 
-    // Add event listener
     document.addEventListener('keydown', handleKeyPress);
     
-    // Cleanup event listener on component unmount
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [display, previousValue, operation, waitingForOperand, inputNumber, inputOperator, performCalculation, percentage, clear, clearEntry, setActiveButton]);
+  }, [inputNumber, inputDecimal, inputOperator, inputParenthesis, performCalculation, percentage, clear, clearEntry, setActiveButton]);
 };
