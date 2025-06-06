@@ -3,72 +3,105 @@ import { useState } from 'react';
 import { formatNumber, unformatNumber, evaluateExpression } from '@/utils/calculatorUtils';
 
 export const useCalculatorState = () => {
-  const [display, setDisplay] = useState('0');
   const [expression, setExpression] = useState('');
-  const [waitingForOperand, setWaitingForOperand] = useState(false);
+  const [showResult, setShowResult] = useState(false);
   const [memory, setMemory] = useState(0);
 
   const inputNumber = (num: string) => {
-    if (waitingForOperand) {
-      setDisplay(num);
+    setShowResult(false);
+    
+    if (expression === '' || expression === '0') {
       setExpression(num);
-      setWaitingForOperand(false);
     } else {
-      const newDisplay = display === '0' ? num : display + num;
-      const newExpression = expression + num;
-      setDisplay(newDisplay);
-      setExpression(newExpression);
+      setExpression(prev => prev + num);
     }
   };
 
   const inputDecimal = () => {
-    if (waitingForOperand) {
-      setDisplay('0.');
+    setShowResult(false);
+    
+    // Get the last number in the expression to check if it already has a decimal
+    const parts = expression.split(/[+\-×÷]/);
+    const lastPart = parts[parts.length - 1].trim();
+    
+    if (lastPart.includes('.')) return; // Already has decimal
+    
+    if (expression === '' || expression === '0') {
       setExpression('0.');
-      setWaitingForOperand(false);
-    } else if (display.indexOf('.') === -1) {
-      const newDisplay = display + '.';
-      const newExpression = expression + '.';
-      setDisplay(newDisplay);
-      setExpression(newExpression);
+    } else if (/[+\-×÷]\s*$/.test(expression)) {
+      // If last character is an operator, add "0."
+      setExpression(prev => prev + '0.');
+    } else {
+      setExpression(prev => prev + '.');
     }
   };
 
-  const inputOperator = (nextOperator: string) => {
-    const newExpression = expression + ` ${nextOperator} `;
-    setExpression(newExpression);
-    setDisplay(newExpression);
-    setWaitingForOperand(true);
-  };
-
-  const performCalculation = () => {
-    if (expression) {
-      try {
-        const calculatedResult = evaluateExpression(expression);
-        const formattedResult = formatNumber(calculatedResult.toString());
-        setDisplay(formattedResult);
-        setExpression(formattedResult);
-        setWaitingForOperand(true);
-      } catch (error) {
-        setDisplay('Error');
-        setExpression('');
-        setWaitingForOperand(true);
+  const inputOperator = (operator: string) => {
+    setShowResult(false);
+    
+    if (expression === '' || expression === '0') {
+      setExpression('0 ' + operator + ' ');
+    } else {
+      // Replace the last operator if the expression ends with one
+      const trimmed = expression.trim();
+      if (/[+\-×÷]$/.test(trimmed)) {
+        setExpression(trimmed.slice(0, -1) + operator + ' ');
+      } else {
+        setExpression(prev => prev + ' ' + operator + ' ');
       }
     }
   };
 
+  const performCalculation = () => {
+    if (!expression || expression.trim() === '') return;
+    
+    try {
+      const result = evaluateExpression(expression);
+      setExpression(result.toString());
+      setShowResult(true);
+    } catch (error) {
+      setExpression('Error');
+      setShowResult(true);
+    }
+  };
+
   const clear = () => {
-    setDisplay('0');
     setExpression('');
-    setWaitingForOperand(false);
+    setShowResult(false);
   };
 
   const clearEntry = () => {
-    setDisplay('0');
+    // Remove the last entered number or operator
+    const trimmed = expression.trim();
+    if (trimmed === '') return;
+    
+    // If we're showing a result, clear everything
+    if (showResult) {
+      clear();
+      return;
+    }
+    
+    // Remove last character or number/operator group
+    if (/[+\-×÷]\s*$/.test(trimmed)) {
+      // Remove operator and trailing space
+      const newExpression = trimmed.replace(/\s*[+\-×÷]\s*$/, '');
+      setExpression(newExpression);
+    } else {
+      // Remove last number character by character
+      setExpression(prev => prev.slice(0, -1));
+    }
   };
 
   const scientificFunction = (func: string) => {
-    const value = parseFloat(unformatNumber(display));
+    const currentValue = expression || '0';
+    let value: number;
+    
+    try {
+      value = parseFloat(unformatNumber(currentValue));
+    } catch {
+      value = 0;
+    }
+    
     let result: number;
 
     switch (func) {
@@ -107,13 +140,13 @@ export const useCalculatorState = () => {
     }
 
     const formattedResult = formatNumber(result.toString());
-    setDisplay(formattedResult);
     setExpression(formattedResult);
-    setWaitingForOperand(true);
+    setShowResult(true);
   };
 
   return {
-    display,
+    expression,
+    showResult,
     memory,
     inputNumber,
     inputDecimal,

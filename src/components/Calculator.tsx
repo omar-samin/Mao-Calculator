@@ -13,7 +13,8 @@ export const Calculator = () => {
   const [activeButton, setActiveButton] = useState<string | null>(null);
 
   const {
-    display,
+    expression,
+    showResult,
     memory,
     inputNumber,
     inputDecimal,
@@ -61,7 +62,7 @@ export const Calculator = () => {
         </div>
 
         {/* Display */}
-        <Display value={display} />
+        <Display expression={expression} showResult={showResult} />
 
         {/* Button Grid */}
         <div className="mt-6">
